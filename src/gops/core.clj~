@@ -1,0 +1,16 @@
+(ns gops.core
+  (:gen-class))
+
+(defn -main
+  "I don't do a whole lot ... yet."
+  [& args]
+  (println "Hello, World!"))
+
+(defn initial-state
+  "Create the initial state"
+  [num-cards]
+  {:bounty (vec (range 0 num-cards))
+   :p1 {:deck (vec (range 0 num-cards)) :bounty 0}
+   :p2 {:deck (vec (range 0 num-cards)) :bounty 0}
+   }
+  )
