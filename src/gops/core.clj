@@ -10,35 +10,33 @@
   "Create the initial state"
   [num-cards]
   [{
-   :bounty (vec (range 0 num-cards))
-   :p1 {:deck (vec (range 0 num-cards)) :bounty 0}
-   :p2 {:deck (vec (range 0 num-cards)) :bounty 0}
-   }]
+    :bounty (vec (range 0 num-cards))
+    :p1 {:deck (vec (range 0 num-cards)) :bounty 0}
+    :p2 {:deck (vec (range 0 num-cards)) :bounty 0}
+    :lastPlay {:bounty nil :p1 nil :p2 nil :turnWin nil}
+    }]
   )
 
 (defn without [c v] (remove #(= % v) c))
 
 (defn next-state
-  "generate the next state given a play"
+  "generate the next state given a bounty and each players card choice"
   [s p1 p2 bounty]
-  (cond (= p1 p2) (-> s
-                      (update-in [:bounty] without bounty)
-                      (update-in [:p2 :deck] without p2)
-                      (update-in [:p1 :deck] without p1)
-                      )
-        (< p1 p2) (-> s
-                      (update-in [:bounty] without bounty)
-                      (update-in [:p2 :deck] without p2)
-                      (update-in [:p1 :deck] without p1)
-                      (update-in [:p2 :bounty] + bounty)
-                      )
-        (> p1 p2) (-> s
-                      (update-in [:bounty] without bounty)
-                      (update-in [:p2 :deck] without p2)
-                      (update-in [:p1 :deck] without p1)
-                      (update-in [:p1 :bounty] + bounty)
-                      )
-        )
+  (cond-> s
+    true (->
+          (update-in [:bounty] without bounty)
+          (update-in [:p2 :deck] without p2)
+          (update-in [:p1 :deck] without p1)
+          (update-in [:lastPlay] assoc :bounty bounty :p1 p1 :p2 p2)
+          )
+    (= p1 p2) (assoc-in [:lastPlay :turnWin] :tie)
+    (< p1 p2) (->
+               (update-in [:p2 :bounty] + bounty)
+               (assoc-in [:lastPlay :turnWin] :p1))
+    (> p1 p2) (->
+               (update-in [:p1 :bounty] + bounty)
+               (assoc-in [:lastPlay :turnWin] :p2))
+    )
   )
 
 (defn end?
@@ -76,8 +74,6 @@
     (playGame (conj states (turn (last states)))))
   )
 
-(defn toConsole
-  "log each turn"
-  [initialState nextState]
-  (print (format "bounty: %d " (clojure.set/difference (get initialState :bounty) (get nextState :bounty))))
-  )
+
+
+
